@@ -5,6 +5,7 @@ import {
 } from "./extract";
 import { emit } from "./emit";
 import { layout } from "./layout";
+import { repairMermaid } from "./repair";
 import type { ConvertResult } from "./types";
 
 export type { ConvertResult } from "./types";
@@ -36,17 +37,26 @@ export async function convertMermaidToDiagram(
   try {
     graph = await extractGraph(text);
   } catch (error) {
-    if (error instanceof UnsupportedDiagramError) {
-      return { ok: false, reason: "unsupported", message: unsupportedMessage(error.diagramType) };
+    // One repair attempt for the syntax slips LLMs (and pasted chat replies)
+    // commonly contain; code that parsed fine never reaches this path.
+    const repaired = error instanceof MermaidParseError ? repairMermaid(text) : text;
+    if (repaired !== text) {
+      try {
+        graph = await extractGraph(repaired);
+      } catch {
+        // repaired version failed too — report the original error below
+      }
     }
-    if (error instanceof MermaidParseError) {
-      return { ok: false, reason: "parse-error", message: error.message };
+    if (!graph) {
+      if (error instanceof UnsupportedDiagramError) {
+        return { ok: false, reason: "unsupported", message: unsupportedMessage(error.diagramType) };
+      }
+      return {
+        ok: false,
+        reason: "parse-error",
+        message: (error as Error)?.message ?? "Could not parse the Mermaid diagram.",
+      };
     }
-    return {
-      ok: false,
-      reason: "parse-error",
-      message: (error as Error)?.message ?? "Could not parse the Mermaid diagram.",
-    };
   }
 
   if (graph.nodes.length === 0) {

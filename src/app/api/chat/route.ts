@@ -56,6 +56,7 @@ export async function POST(req: Request) {
     system: SYSTEM_PROMPT,
     messages: await convertToModelMessages(messages),
     stopWhen: stepCountIs(8),
+    temperature: 0.2,
     tools,
   });
 

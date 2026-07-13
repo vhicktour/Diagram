@@ -47,7 +47,12 @@ export function useDiagramTools(diagram: ReturnType<typeof useDiagram>) {
 
       case "apply_mermaid": {
         const result = await diagram.importMermaid(str(input.code));
-        return result.ok ? { added: result.nodes.length } : { error: result.message };
+        return result.ok
+          ? { added: result.nodes.length }
+          : {
+              error: result.message,
+              hint: "Fix the Mermaid code yourself and call apply_mermaid again. Do not ask the user about syntax.",
+            };
       }
 
       case "add_node": {

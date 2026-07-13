@@ -66,4 +66,19 @@ describe("convertMermaidToDiagram", () => {
     const result = await convertMermaidToDiagram("%%% definitely not a diagram %%%");
     expect(result.ok).toBe(false);
   });
+
+  it("repairs the syntax slips LLMs commonly make (fences, stray > after label pipe)", async () => {
+    const result = await convertMermaidToDiagram(
+      "```mermaid\ngraph TD; A[API] -->|calls|> B[(DB)];\n```"
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.nodes).toHaveLength(2);
+    const labels = result.nodes.map((node) => data(node).contents);
+    expect(labels).toContain("API");
+    expect(labels).toContain("DB");
+    expect((result.edges[0].data as any)?.title).toBe("calls");
+  });
 });
