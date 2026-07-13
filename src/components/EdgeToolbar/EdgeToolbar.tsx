@@ -1,11 +1,10 @@
 import React from "react";
 import { Algorithm } from "../edges/EditableEdge/constants";
-import { AnalyticsOutline } from "react-ionicons";
 import { TbLetterL, TbVectorSpline } from "react-icons/tb";
 import { TfiVector } from "react-icons/tfi";
 import { Crosshair } from "react-feather";
 import { RxBorderDotted } from "react-icons/rx";
-import { IoRemoveOutline } from "react-icons/io5";
+import { IoRemoveOutline, IoAnalyticsOutline } from "react-icons/io5";
 import { useDiagram } from "@/hooks/useDiagram";
 
 const colors = [
@@ -206,7 +205,7 @@ function EdgeToolbar(props: EdgeToolbarProps) {
                 : "border border-transparent"
             }`}
           >
-            <AnalyticsOutline cssClasses={"text-black dark:text-white"} />
+            <IoAnalyticsOutline className={"text-black dark:text-white"} />
           </button>
           <button
             onClick={() => onShapeChange(Algorithm.BezierCatmullRom)}

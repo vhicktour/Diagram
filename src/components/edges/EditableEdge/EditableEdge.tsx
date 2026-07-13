@@ -167,7 +167,6 @@ export function EditableEdge({
           className="nodrag nopan"
         >
           {data.title ? (
-            <foreignObject x="10" y="10" width="100" height="100">
               <div
                 ref={draggableEdgeLabelRef as RefObject<HTMLInputElement>}
                 style={{
@@ -205,7 +204,6 @@ export function EditableEdge({
                 }}
                 className={`bottom-full p-2 text-center text-sm dark:bg-black bg-white rounded-md`}
               >{`${data.title}`}</div>
-            </foreignObject>
           ) : null}
         </div>
       </EdgeLabelRenderer>
