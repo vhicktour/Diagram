@@ -29,6 +29,12 @@ import {
 const JsonViewer = dynamic(() => import("./JsonViewer/JsonViewer"), {
   ssr: false,
 });
+const Chat = dynamic(() => import("./Chat/Chat"), {
+  ssr: false,
+});
+const MermaidEditor = dynamic(() => import("./MermaidEditor/MermaidEditor"), {
+  ssr: false,
+});
 import { useCallback, useRef, useState } from "react";
 import { useWindowSize } from "@/hooks/useWindowSize";
 import dynamic from "next/dynamic";
@@ -54,6 +60,9 @@ const Flow = () => {
   const { getSnapshotJson, takeSnapshot } = useUndoRedo();
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState<boolean>(false);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState<boolean>(false);
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [isMermaidOpen, setIsMermaidOpen] = useState<boolean>(false);
+  const [mermaidCode, setMermaidCode] = useState<string>("");
   const [width] = useWindowSize();
   const themeHook = useTheme();
 
@@ -71,6 +80,14 @@ const Flow = () => {
     setIsLeftSidebarOpen(!isLeftSidebarOpen);
   };
 
+  const toggleChat = () => {
+    setIsChatOpen(!isChatOpen);
+  };
+
+  const toggleMermaid = () => {
+    setIsMermaidOpen(!isMermaidOpen);
+  };
+
   const EditableEdgeWrapper = useCallback(
     (props: EdgeProps) => {
       return <EditableEdge {...props} useDiagram={diagram} />;
@@ -85,25 +102,25 @@ const Flow = () => {
     <div className="w-full h-full">
       <PanelGroup direction="horizontal">
         {isLeftSidebarOpen ? (
-          <ResizablePanel
-            order={1}
-            className="bg-white dark:bg-black"
-            defaultSize={getDefaultSize(width)}
-            minSize={getDefaultSize(width)}
-          >
-            <About onClick={toggleLeftSidebar} />
-          </ResizablePanel>
+          <>
+            <ResizablePanel
+              id="about"
+              order={1}
+              className="bg-white dark:bg-black"
+              defaultSize={getDefaultSize(width)}
+              minSize={getDefaultSize(width)}
+            >
+              <About onClick={toggleLeftSidebar} />
+            </ResizablePanel>
+            <PanelResizeHandle
+              id="about-handle"
+              className="w-1 cursor-col-resize bg-stone-600"
+            />
+          </>
         ) : null}
-        <PanelResizeHandle
-          className={`w-1 cursor-col-resize ${
-            isLeftSidebarOpen === true
-              ? "bg-stone-600 visible"
-              : "bg-transparent hidden"
-          }`}
-        />
-        <ResizablePanel order={2}>
+        <ResizablePanel id="main" order={2}>
           <PanelGroup direction="horizontal">
-            <ResizablePanel minSize={30} order={1}>
+            <ResizablePanel id="canvas" minSize={30} order={1}>
               <ReactFlow
                 className={themeHook.theme || "light"}
                 onConnect={diagram.onConnect}
@@ -160,6 +177,10 @@ const Flow = () => {
                     isRightSidebarOpen={isRightSidebarOpen}
                     toggleRightSidebar={toggleRightSidebar}
                     toggleLeftSidebar={toggleLeftSidebar}
+                    toggleChat={toggleChat}
+                    isChatOpen={isChatOpen}
+                    toggleMermaid={toggleMermaid}
+                    isMermaidOpen={isMermaidOpen}
                   />
                 </Panel>
                 <Controls className="" showInteractive={false}>
@@ -183,24 +204,62 @@ const Flow = () => {
                 <diagram.Markers />
               </ReactFlow>
             </ResizablePanel>
-            <PanelResizeHandle
-              className={`w-1 cursor-col-resize ${
-                isRightSidebarOpen === true
-                  ? "bg-stone-600 visible"
-                  : "bg-transparent hidden"
-              }`}
-            />
             {isRightSidebarOpen ? (
-              <ResizablePanel
-                order={2}
-                defaultSize={getDefaultSize(width)}
-                minSize={getDefaultSize(width)}
-              >
-                <JsonViewer
-                  jsonString={getSnapshotJson()}
-                  toggleRightSidebar={toggleRightSidebar}
+              <>
+                <PanelResizeHandle
+                  id="json-handle"
+                  className="w-1 cursor-col-resize bg-stone-600"
                 />
-              </ResizablePanel>
+                <ResizablePanel
+                  id="json"
+                  order={2}
+                  defaultSize={getDefaultSize(width)}
+                  minSize={getDefaultSize(width)}
+                >
+                  <JsonViewer
+                    jsonString={getSnapshotJson()}
+                    toggleRightSidebar={toggleRightSidebar}
+                  />
+                </ResizablePanel>
+              </>
+            ) : null}
+            {isChatOpen ? (
+              <>
+                <PanelResizeHandle
+                  id="chat-handle"
+                  className="w-1 cursor-col-resize bg-stone-600"
+                />
+                <ResizablePanel
+                  id="chat"
+                  order={3}
+                  defaultSize={getDefaultSize(width)}
+                  minSize={getDefaultSize(width)}
+                >
+                  <Chat onClose={toggleChat} diagram={diagram} />
+                </ResizablePanel>
+              </>
+            ) : null}
+            {isMermaidOpen ? (
+              <>
+                <PanelResizeHandle
+                  id="mermaid-handle"
+                  className="w-1 cursor-col-resize bg-stone-600"
+                />
+                <ResizablePanel
+                  id="mermaid"
+                  order={4}
+                  defaultSize={getDefaultSize(width)}
+                  minSize={getDefaultSize(width)}
+                >
+                  <MermaidEditor
+                    onClose={toggleMermaid}
+                    diagram={diagram}
+                    code={mermaidCode}
+                    setCode={setMermaidCode}
+                    theme={themeHook.theme}
+                  />
+                </ResizablePanel>
+              </>
             ) : null}
           </PanelGroup>
         </ResizablePanel>

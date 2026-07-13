@@ -14,21 +14,22 @@ export const About = (props: { onClick: () => void }) => {
         </div>
       </div>
       <div className="text-sm">
-        DiagramX was created by Dave Aldon to be a beautiful diagram maker that
-        helps you just get to the point. The Json export also makes it source
-        control friendly!
+        A fast diagram editor. Drag shapes onto the canvas and connect them with editable
+        edges, or write Mermaid in the live code editor and watch it render. The built-in AI
+        assistant can draw and edit diagrams for you from a prompt or a sketch. Export to PNG,
+        SVG, PDF, or source-control-friendly JSON.
       </div>
       <a
         className="flex flex-row gap-3 justify-center items-center border-[1px] border-black hover:bg-gray-100 p-1 rounded-md"
-        href="https://github.com/davealdon"
+        href="https://github.com/vhicktour"
         target="_blank"
         rel="noopener noreferrer"
       >
         <FaGithub />
-        <div>Dave Aldon</div>
+        <div>vhicktour</div>
       </a>
       <div className="text-xs fixed bottom-4">
-        DiagramX Copyright &copy; {new Date().getFullYear()}
+        DiagramX &copy; {new Date().getFullYear()}
       </div>
     </div>
   );

@@ -25,6 +25,7 @@ import { DEFAULT_ALGORITHM } from "@/components/edges/EditableEdge/constants";
 import { ControlPointData } from "@/components/edges/EditableEdge";
 import { MarkerDefinition } from "@/components/edges/MarkerDefinition";
 import { debounce } from "lodash";
+import type { ConvertResult } from "@/lib/mermaid";
 
 export const useDiagram = () => {
   const useReactFlow = useReactFlowHook;
@@ -51,24 +52,10 @@ export const useDiagram = () => {
   };
   const [selectedNodeId, setSelectedNodeId] = useState<string>();
 
-  const selectAllNodes = () => {
+  const selectAllNodes = useCallback(() => {
     setNodes((nodes) => nodes.map((node) => ({ ...node, selected: true })));
     setEdges((edges) => edges.map((edge) => ({ ...edge, selected: true })));
-    /* setEdges((edges) =>
-      edges.map((edge) => {
-        //if (!isEditableEdge(edge)) return edge;
-
-        const points = (edge.data?.points as ControlPointData[]) ?? [];
-        const updatedPoints = points.map((point) => ({
-          ...point,
-          selected: true,
-        }));
-        const updatedData = { ...edge.data, points: updatedPoints };
-
-        return { ...edge, data: updatedData };
-      })
-    ); */
-  };
+  }, [setNodes, setEdges]);
 
   const deselectAll = () => {
     setNodes((nodes) => nodes.map((node) => ({ ...node, selected: false })));
@@ -86,7 +73,7 @@ export const useDiagram = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [selectAllNodes]);
 
   /*   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -121,6 +108,27 @@ export const useDiagram = () => {
         'Invalid JSON format. Expected an object with "nodes" and "edges" arrays.'
       );
     }
+  };
+
+  // Converts Mermaid text into native nodes/edges and replaces the canvas with
+  // them (the code defines the whole diagram). The converter (and mermaid
+  // itself) is loaded lazily so it stays out of the initial bundle. Returns the
+  // result so callers can surface failures.
+  const importMermaid = async (text: string): Promise<ConvertResult> => {
+    const { convertMermaidToDiagram } = await import("@/lib/mermaid");
+    const result = await convertMermaidToDiagram(text);
+    if (result.ok) {
+      takeSnapshot();
+      setNodes(result.nodes);
+      setEdges(result.edges);
+    }
+    return result;
+  };
+
+  const clearDiagram = () => {
+    takeSnapshot();
+    setNodes([]);
+    setEdges([]);
   };
 
   // this function is called when a node from the sidebar is dropped onto the react flow pane
@@ -351,5 +359,9 @@ export const useDiagram = () => {
     useStore,
     deselectAll,
     uploadJson,
+    setNodes,
+    importMermaid,
+    clearDiagram,
+    takeSnapshot,
   };
 };

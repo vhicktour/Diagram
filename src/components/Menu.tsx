@@ -18,6 +18,8 @@ import { useTheme } from "@/hooks/useTheme";
 import { useDiagram } from "@/hooks/useDiagram";
 import { useRef } from "react";
 import DownloadGifButton from "./Downloads/DownloadGif";
+import DownloadPdfButton from "./Downloads/DownloadPdf";
+import { FaProjectDiagram, FaRobot, FaTrashAlt } from "react-icons/fa";
 
 interface MenuProps {
   themeHook: ReturnType<typeof useTheme>;
@@ -25,6 +27,10 @@ interface MenuProps {
   toggleRightSidebar: () => void;
   toggleLeftSidebar: () => void;
   isRightSidebarOpen: boolean;
+  toggleChat: () => void;
+  isChatOpen: boolean;
+  toggleMermaid: () => void;
+  isMermaidOpen: boolean;
 }
 export const Menu = (props: MenuProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,6 +58,15 @@ export const Menu = (props: MenuProps) => {
         onClick={props.themeHook.darkModeToggle}
         isDarkMode={props.themeHook.theme === "dark"}
       />
+      <button
+        title="AI Assistant"
+        onClick={props.toggleChat}
+        className={`w-8 mr-4 rounded-md p-1 flex flex-row justify-center items-center hover:bg-slate-200 hover:dark:bg-slate-700 ${
+          props.isChatOpen ? "bg-slate-300 dark:bg-slate-700" : "dark:bg-slate-800"
+        }`}
+      >
+        <FaRobot />
+      </button>
       <DropdownMenu>
         <DropdownMenuTrigger className="flex flex-row gap-2 justify-center items-center p-1 pl-2 rounded-md hover:bg-slate-200 hover:dark:bg-slate-700 dark:bg-slate-800">
           Menu
@@ -81,6 +96,9 @@ export const Menu = (props: MenuProps) => {
             <DownloadGifButton useDiagram={props.diagram} />
           </DropdownMenuItem>
           <DropdownMenuItem>
+            <DownloadPdfButton useDiagram={props.diagram} />
+          </DropdownMenuItem>
+          <DropdownMenuItem>
             <DownloadJsonButton useDiagram={props.diagram} />
           </DropdownMenuItem>
           <DropdownMenuItem>
@@ -92,11 +110,35 @@ export const Menu = (props: MenuProps) => {
           </DropdownMenuItem>
           <DropdownMenuItem>
             <button
+              onClick={() => props.toggleMermaid()}
+              className="w-full dark:text-white dark:hover:bg-slate-800 hover:bg-gray-200 rounded-md p-1 flex flex-row gap-1 justify-between items-center"
+            >
+              {props.isMermaidOpen ? "Hide" : "Show"} Mermaid
+              <FaProjectDiagram />
+            </button>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <button
               onClick={() => props.toggleRightSidebar()}
               className="w-full dark:text-white dark:hover:bg-slate-800 hover:bg-gray-200 rounded-md p-1 flex flex-row gap-1 justify-between items-center"
             >
               {props.isRightSidebarOpen ? "Hide" : "Show"} Json
               <VscJson />
+            </button>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <button
+              onClick={() => {
+                props.diagram.clearDiagram();
+                toast({
+                  title: "Canvas cleared",
+                  description: "All shapes and edges were removed.",
+                });
+              }}
+              className="w-full dark:text-white dark:hover:bg-slate-800 hover:bg-gray-200 rounded-md p-1 flex flex-row gap-1 justify-between items-center"
+            >
+              Clear canvas
+              <FaTrashAlt />
             </button>
           </DropdownMenuItem>
         </DropdownMenuContent>

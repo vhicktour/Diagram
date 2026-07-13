@@ -132,6 +132,21 @@ export function EditableEdge({
   });
   const controlPointsWithIds = useIdsForInactiveControlPoints(controlPoints);
 
+  // React warns when the `animation` shorthand and the `animationDirection`
+  // longhand share one inline style, so fold the direction into the shorthand
+  // when both are present (keeps the marching-ants direction intact).
+  const { animation, animationDirection, ...restStyle } = style ?? {};
+  const pathStyle = {
+    ...restStyle,
+    strokeWidth: 2,
+    stroke: color,
+    ...(animation
+      ? { animation: animationDirection ? `${animation} ${animationDirection}` : animation }
+      : animationDirection
+      ? { animationDirection }
+      : {}),
+  };
+
   return (
     <>
       <path
@@ -147,17 +162,14 @@ export function EditableEdge({
         id={id}
         d={path}
         markerEnd={markerEnd}
-        style={{
-          ...style,
-          strokeWidth: 2,
-          stroke: color,
-        }}
+        style={pathStyle}
         ref={edgePathRef}
         fill="transparent"
       />
       <EdgeLabelRenderer>
         <div
           ref={draggableEdgeLabelRef}
+          onClick={() => useDiagram.setEditingEdgeId(id)}
           style={{
             position: "absolute",
             transform: `translate(-50%, -50%)`,

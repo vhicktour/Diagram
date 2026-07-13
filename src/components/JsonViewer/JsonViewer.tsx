@@ -22,43 +22,20 @@ const JsonViewer: React.FC<JsonViewerProps> = (props: JsonViewerProps) => {
     prettyJsonString = "Invalid JSON string";
   }
 
-  useEffect(
-    () => {
-      if (!observedDiv.current) {
-        // we do not initialize the observer unless the ref has
-        // been assigned
-        return;
-      }
+  useEffect(() => {
+    const element = observedDiv.current;
+    if (!element) return;
 
-      // we also instantiate the resizeObserver and we pass
-      // the event handler to the constructor
-      const resizeObserver = new ResizeObserver(() => {
-        if (observedDiv.current && observedDiv.current.offsetWidth !== width) {
-          setWidth(observedDiv.current.offsetWidth);
-        }
-        if (
-          observedDiv.current &&
-          observedDiv.current.offsetHeight !== height
-        ) {
-          setHeight(observedDiv.current.offsetHeight);
-        }
-      });
+    // React skips the re-render when the size is unchanged, so we can set
+    // width/height unconditionally on every resize.
+    const resizeObserver = new ResizeObserver(() => {
+      setWidth(element.offsetWidth);
+      setHeight(element.offsetHeight);
+    });
+    resizeObserver.observe(element);
 
-      // the code in useEffect will be executed when the component
-      // has mounted, so we are certain observedDiv.current will contain
-      // the div we want to observe
-      resizeObserver.observe(observedDiv.current);
-
-      // if useEffect returns a function, it is called right before the
-      // component unmounts, so it is the right place to stop observing
-      // the div
-      return function cleanup() {
-        resizeObserver.disconnect();
-      };
-    },
-    // only update the effect if the ref element changed
-    [observedDiv.current]
-  );
+    return () => resizeObserver.disconnect();
+  }, []);
 
   const copyAll = async () => {
     await navigator.clipboard.writeText(prettyJsonString);
@@ -90,12 +67,18 @@ const JsonViewer: React.FC<JsonViewerProps> = (props: JsonViewerProps) => {
           <IoMdClose />
         </div>
       </div>
+      {/* react-monaco-editor's defaultProps noops are not applied at runtime
+          under Next 16, so its lifecycle props must be passed explicitly —
+          otherwise it crashes with "editorWillMount is not a function". */}
       <MonacoEditor
         width={width}
         height={height}
         language={syntaxHighlighting ? "json" : ""}
         theme="vs-dark"
         value={prettyJsonString}
+        editorWillMount={() => {}}
+        editorDidMount={() => {}}
+        editorWillUnmount={() => {}}
         options={{
           readOnly: true,
           lineNumbers: "on",
